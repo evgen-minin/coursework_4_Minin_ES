@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "coursework-4-minin-es"
+version = "0.1.0"
+description = ""
+authors = ["Евгений Минин <evgenminin1988@mail.ru>"]
+readme = "README.md"
+packages = [{include = "coursework_4_minin_es"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
