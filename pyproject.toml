@@ -10,6 +10,9 @@ packages = [{include = "coursework_4_minin_es"}]
 python = "^3.10"
 
 
+[tool.poetry.group.dev.dependencies]
+requests = "^2.29.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
