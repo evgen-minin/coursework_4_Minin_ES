@@ -15,19 +15,23 @@ class MixinAPI:
 
     def get_vacancies(self, vacancy_name):
         list_vacancies = []
-        page = 0
         start = True
         while start:
             try:
-                vacancy = requests.get(self.url, headers=self.headers,
-                                   params=self.params).json()
-                test = 1/0
-            except ZeroDivisionError as e:
-                raise HTTPError(f'ыпывпывп: {e}')
-            pages = vacancy[self.field_the_number_of_lines]
+                response = requests.get(self.url, headers=self.headers,
+                                        params=self.params)
+                response.raise_for_status()
+                vacancy = response.json
+            except requests.exceptions.RequestException as e:
+                raise HTTPError(f'Ошибка при отправке запроса: {e}')
+            except ValueError as e:
+                raise HTTPError(f'Ошибка при обработке ответа: {e}')
+            count_vacancy = vacancy[self.field_the_number_of_lines]
+            total_pages = (count_vacancy + 99) // 100
+
             list_vacancies += vacancy[self.field_items]
-            start = page != pages
-            page += 1
+            start = self.params['page'] != total_pages
+            self.params['page'] += 1
         return list_vacancies
 
 
@@ -35,26 +39,31 @@ class HeadHunterAPI(MixinAPI, AbstractVacancyAPI):
     url = 'https://api.hh.ru/vacancies'
     params = {}
     page = 0
-    field_the_number_of_lines = 'pages'
+    field_the_number_of_lines = 'found'
     field_items = 'items'
 
     def get_vacancies(self, vacancy_name):
-        self.params = {'text': vacancy_name, 'search_field': 'name', 'per_page': 100,
-                       'page': self.page}
+        self.params = {
+            'text': vacancy_name,
+            'search_field': 'name',
+            'per_page': 100,
+            'page': self.page
+        }
         return super().get_vacancies(vacancy_name)
 
-    class SuperJobAPI(AbstractVacancyAPI):
-        url = 'https://api.superjob.ru/2.33/vacancies/'
 
-        # @property
-        # def url(self) -> str:
-        #     return 'https://api.superjob.ru/2.33/vacancies/'
+class SuperJobAPI(MixinAPI, AbstractVacancyAPI):
+    url = 'https://api.superjob.ru/2.33/vacancies/'
+    headers = {'X-Api-App-Id': os.getenv('TOKEN_SJOB')}
+    params = {}
+    page = 0
+    field_the_number_of_lines = 'total'
+    field_items = 'objects'
 
-        # @property
-        # def headers(self) -> dict:
-        #     app_id: str = os.getenv('TOKEN_SJOB')
-        #     return {'X-Api-App-Id': app_id}
-
-        def get_vacancies(self, vacancy_name):
-            req = requests.get(self.url, headers=self.headers, params={'keyword': vacancy_name})
-            return req.json()
+    def get_vacancies(self, vacancy_name):
+        self.params = {
+            'keywords[0][keys]': vacancy_name,
+            'keywords[0][srws]': 1,
+            'page': self.page, 'count': 100
+        }
+        return super().get_vacancies(vacancy_name)
