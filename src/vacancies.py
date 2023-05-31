@@ -1,34 +1,67 @@
+from typing import List
+
+
 class Vacancy:
-    def __init__(self, job_title: str, url_vacancy: str, salary: str, description: str):
-        self.job_title = job_title
-        self.url_vacancy = url_vacancy
+    """
+    Класс для работы с вакансиями.
+    """
+
+    def __init__(self, id: str, url: str, title: str, salary: float, description: str, company_name: str):
+        self.id = id
+        self.title = title
+        self.url = url
         self.salary = salary
         self.description = description
+        self.company_name = company_name
+        self.validate()
 
-    def validate_data(self):
-        if not isinstance(self.job_title, str):
-            raise TypeError("Название вакансии должно быть строкой")
+    def to_dict(self) -> dict:
+        """
+        Преобразует данные в словарь.
+        :return: Возвращает данные в виде словаря.
+        """
+        return {
+            'id вакансии': self.id,
+            'Название вакансии': self.title,
+            'Ссылка на вакансию': self.url,
+            'Зарплата': self.salary,
+            'Описание вакансии': self.description,
+            'Название организации': self.company_name
+        }
 
-        if not isinstance(self.url_vacancy, str):
-            raise TypeError("Link must be a string.")
+    def validate(self) -> None:
+        """
+        Проверяет атрибуты объекта Vacancy.
+        """
+        if self.title is None or not isinstance(self.title, str):
+            raise TypeError("Некорректный тип данных для атрибута 'title'")
+        if self.url is None or not isinstance(self.url, str):
+            raise TypeError("Некорректный тип данных для атрибута 'url'")
+        if self.description is None:
+            self.description = 'Отсутствует описание'
+        elif not isinstance(self.description, str):
+            raise TypeError("Некорректный тип данных для атрибута 'description'")
+        if self.salary is None:
+            self.salary = 'Зарплата не указана'
+        elif not isinstance(self.salary, (float, int)):
+            raise TypeError("Некорректный тип данных для атрибута 'salary'")
 
-        if not isinstance(self.salary, (int, float)) and self.salary is not None:
-            raise TypeError("Salary must be a number or None.")
+    def __repr__(self) -> str:
+        return f"Vacancy(title='{self.title}', url='{self.url}', salary={self.salary}, description='{self.description}')"
 
-        if not isinstance(self.description, str):
-            raise TypeError("Description must be a string.")
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Vacancy):
+            return self.salary == other.salary
+        return False
 
-        if self.salary is not None and self.salary < 0:
-            raise ValueError("Salary must be non-negative or None.")
+    def __lt__(self, other) -> bool:
+        if isinstance(other, Vacancy):
+            return self.salary < other.salary
+        raise TypeError("Невозможно сравнить объекты других типов")
 
-        if not self.link.startswith('http'):
-            raise ValueError("Link must start with http.")
-
-    def __eq__(self, other):
-        return self.salary == other.salary
-
-    def __lt__(self, other):
-        return self.salary < other.salary
-
-    def __gt__(self, other):
-        return self.salary > other.salary
+    def get_sorted_by_salary(self) -> List[dict]:
+        """
+        Сортирует данные по зарплате.
+        """""
+        sorted_vacancies = sorted(self.vacancies, key=lambda vacancy: vacancy.get('Зарплата'))
+        return sorted_vacancies
